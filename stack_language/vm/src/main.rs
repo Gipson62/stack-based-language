@@ -1,11 +1,33 @@
+#[derive(Debug)]
 pub enum Instruction {
     Push(i32),
-    //Pop,
+    Pop,
     Add,
-    Div,
     Sub,
     Mul,
+    Div,
+    //Duplicate the top value of the stack
+    Dup,
+    //Swap the 2 top value of the stack (using the tmp register)
+    Swap,
+    //Copies the second top value of the stack and push it on top of it
+    Over,
+    Jmp(usize),
+    JmpIfZero(usize),
+    JmpIfNotZero(usize),
+    Call(usize),
+    Ret,
     Print,
+    Read,
+    Eq,
+    Neq,
+    Lt,
+    Gt,
+    Lte,
+    Gte,
+    And,
+    Or,
+    Not,
 }
 
 pub struct StackMachine {
@@ -27,7 +49,8 @@ impl StackMachine {
     }
     
     pub fn execute(&mut self) {
-        for ins in &self.ins {
+        while (self.pc as usize) < self.ins.len() {
+            let ins = &self.ins[self.pc as usize];
             match ins {
                 Instruction::Push(i) => self.stack.push(*i),
                 Instruction::Print => {
@@ -53,7 +76,8 @@ impl StackMachine {
                     let b = self.stack.pop().expect("Stack Underflow");
                     let a = self.stack.pop().expect("Stack Underflow");
                     self.stack.push(a - b);
-                }
+                },
+                _ => unimplemented!()
             }
             self.pc += 1;
         }
