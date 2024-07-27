@@ -1,3 +1,5 @@
+use std::default;
+
 #[derive(Debug)]
 pub enum Instruction {
     Push(i32),
@@ -10,10 +12,10 @@ pub enum Instruction {
     Dup,
     //Swap the 2 top value of the stack (using the tmp register)
     Swap,
-    Jmp(usize),
-    JmpIfZero(usize),
-    JmpIfNotZero(usize),
-    Call(usize),
+    Jmp(Address),
+    JmpIfZero(Address),
+    JmpIfNotZero(Address),
+    Call(Address),
     Ret,
     Print,
     Read,
@@ -26,4 +28,20 @@ pub enum Instruction {
     And,
     Or,
     Not,
+}
+
+#[derive(Debug, Default)]
+pub enum Address {
+    #[default]
+    ToDefine,
+    Val(usize)
+}
+
+impl Into<usize> for &Address {
+    fn into(self) -> usize {
+        match self {
+            Address::ToDefine => panic!(),
+            Address::Val(addr) => *addr
+        }
+    }
 }

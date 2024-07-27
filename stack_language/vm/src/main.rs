@@ -29,7 +29,7 @@ impl StackMachine {
                     self.stack.pop().expect("Stack Underflow");
                 },
                 Print => {
-                    let value = self.stack.pop().expect("Stack Underflow");
+                    let value = self.stack.last().expect("Stack Underflow");
                     println!("{}", value)
                 }
                 Add => {
@@ -62,26 +62,27 @@ impl StackMachine {
                     self.stack.push(b);
                 },
                 Jmp(address) => {
-                    self.pc = *address;
+
+                    self.pc = address.into();
                     continue;
                 },
                 JmpIfZero(address) => {
                     let val = self.stack.pop().expect("Stack Underflow");
                     if val == 0 {
-                        self.pc = *address;
+                        self.pc = address.into();
                     }
                     continue;
                 },
                 JmpIfNotZero(address) => {
                     let val = self.stack.pop().expect("Stack Underflow");
                     if val != 0 {
-                        self.pc = *address;
+                        self.pc = address.into();
                     }
                     continue;
                 },
                 Call(address) => {
                     self.stack.push(self.pc as i32 + 1);
-                    self.pc = *address;
+                    self.pc = address.into();
                     continue;
                 },
                 Ret => {
