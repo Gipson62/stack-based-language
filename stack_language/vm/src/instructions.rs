@@ -1,5 +1,3 @@
-use std::default;
-
 #[derive(Debug)]
 pub enum Instruction {
     Push(i32),
@@ -12,6 +10,8 @@ pub enum Instruction {
     Dup,
     //Swap the 2 top value of the stack (using the tmp register)
     Swap,
+    //Rotate the first 3 elements, so [1, 2, 3] => [3, 2, 1]
+    Rot,
     Jmp(Address),
     JmpIfZero(Address),
     JmpIfNotZero(Address),
@@ -28,20 +28,22 @@ pub enum Instruction {
     And,
     Or,
     Not,
+    HLT,
+    Nop
 }
 
 #[derive(Debug, Default)]
 pub enum Address {
     #[default]
     ToDefine,
-    Val(usize)
+    Val(usize),
 }
 
-impl Into<usize> for &Address {
-    fn into(self) -> usize {
-        match self {
+impl From<&Address> for usize {
+    fn from(value: &Address) -> Self {
+        match value {
             Address::ToDefine => panic!(),
-            Address::Val(addr) => *addr
+            Address::Val(addr) => *addr,
         }
     }
 }

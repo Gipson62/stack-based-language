@@ -17,4 +17,24 @@ def fib(n):
 
 
 
-Kinda hard to make the fibonacci sequence given the current instructions and implementation of the vm
+main:
+    Push(15)
+    Call(4)
+    Print
+    HLT
+fib:
+    Dup
+    Push(2)
+    Gt
+    JumpIfZero(9)
+    Ret
+    Dup
+    Push(1)
+    Sub
+    Call(4)
+    Dup
+    Push(2)
+    Sub
+    Call(4)
+    Add
+    Ret
