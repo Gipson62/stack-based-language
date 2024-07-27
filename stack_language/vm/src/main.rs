@@ -1,37 +1,8 @@
-#[derive(Debug)]
-pub enum Instruction {
-    Push(i32),
-    Pop,
-    Add,
-    Sub,
-    Mul,
-    Div,
-    //Duplicate the top value of the stack
-    Dup,
-    //Swap the 2 top value of the stack (using the tmp register)
-    Swap,
-    //Copies the second top value of the stack and push it on top of it
-    Over,
-    Jmp(usize),
-    JmpIfZero(usize),
-    JmpIfNotZero(usize),
-    Call(usize),
-    Ret,
-    Print,
-    Read,
-    Eq,
-    Neq,
-    Lt,
-    Gt,
-    Lte,
-    Gte,
-    And,
-    Or,
-    Not,
-}
+pub mod instructions;
+use instructions::Instruction;
 
 pub struct StackMachine {
-    pc: i32,
+    pc: usize,
     ins: Vec<Instruction>,
     stack: Vec<i32>,
 }
@@ -49,35 +20,125 @@ impl StackMachine {
     }
     
     pub fn execute(&mut self) {
-        while (self.pc as usize) < self.ins.len() {
-            let ins = &self.ins[self.pc as usize];
+        while (self.pc) < self.ins.len() {
+            let ins = &self.ins[self.pc];
+            use Instruction::*;
             match ins {
-                Instruction::Push(i) => self.stack.push(*i),
-                Instruction::Print => {
+                Push(i) => self.stack.push(*i),
+                Pop => {
+                    self.stack.pop().expect("Stack Underflow");
+                },
+                Print => {
                     let value = self.stack.pop().expect("Stack Underflow");
                     println!("{}", value)
                 }
-                Instruction::Add => {
+                Add => {
                     let b = self.stack.pop().expect("Stack Underflow");
                     let a = self.stack.pop().expect("Stack Underflow");
                     self.stack.push(a + b);
                 }
-                Instruction::Mul => {
+                Mul => {
                     let b = self.stack.pop().expect("Stack Underflow");
                     let a = self.stack.pop().expect("Stack Underflow");
                     self.stack.push(a * b);
                 }
-                Instruction::Div => {
+                Div => {
                     let b = self.stack.pop().expect("Stack Underflow");
                     let a = self.stack.pop().expect("Stack Underflow");
                     self.stack.push(a / b);
                 }
-                Instruction::Sub => {
+                Sub => {
                     let b = self.stack.pop().expect("Stack Underflow");
                     let a = self.stack.pop().expect("Stack Underflow");
                     self.stack.push(a - b);
                 },
-                _ => unimplemented!()
+                Dup => {
+                    self.stack.push(*self.stack.last().expect("Stack Underflow"));
+                },
+                Swap => {
+                    let a = self.stack.pop().expect("Stack Underflow");
+                    let b = self.stack.pop().expect("Stack Underflow");
+                    self.stack.push(a);
+                    self.stack.push(b);
+                },
+                Jmp(address) => {
+                    self.pc = *address;
+                    continue;
+                },
+                JmpIfZero(address) => {
+                    let val = self.stack.pop().expect("Stack Underflow");
+                    if val == 0 {
+                        self.pc = *address;
+                    }
+                    continue;
+                },
+                JmpIfNotZero(address) => {
+                    let val = self.stack.pop().expect("Stack Underflow");
+                    if val != 0 {
+                        self.pc = *address;
+                    }
+                    continue;
+                },
+                Call(address) => {
+                    self.stack.push(self.pc as i32 + 1);
+                    self.pc = *address;
+                    continue;
+                },
+                Ret => {
+                    self.pc = self.stack.pop().expect("Stack Underflow") as usize;
+                    continue;
+                },
+                Read => {
+                    let mut input = String::new();
+                    std::io::stdin().read_line(&mut input).expect("Failed to read input");
+                    let val = input.trim().parse().expect("Invalid input");
+                    self.stack.push(val);
+                },
+                Instruction::Eq => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a == b) as i32);
+                }
+                Instruction::Neq => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a != b) as i32);
+                }
+                Instruction::Lt => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a < b) as i32);
+                }
+                Instruction::Gt => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a > b) as i32);
+                }
+                Instruction::Lte => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a <= b) as i32);
+                }
+                Instruction::Gte => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a >= b) as i32);
+                }
+                Instruction::And => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a != 0 && b != 0) as i32);
+                }
+                Instruction::Or => {
+                    let b = self.stack.pop().expect("Stack underflow");
+                    let a = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((a != 0 || b != 0) as i32);
+                }
+                Instruction::Not => {
+                    let value = self.stack.pop().expect("Stack underflow");
+                    self.stack.push((value == 0) as i32);
+                }
+                //_ => unimplemented!()
             }
             self.pc += 1;
         }
