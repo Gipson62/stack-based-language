@@ -1,40 +1,22 @@
-def main():
-    a = 8
-    b = 10
-    if a > b:
-        print 1
-    else:
-        print -1
-    fib(5)
-    
-def fib(n):
-    a, b = 0, 1
-    for _ in range(n):
-        c = b
-        b = a + b
-        a = c
-    return a
-
-
-
 main:
-    Push(15)
-    Call(4)
+    Push 40
+    Call fib
     Print
     HLT
 fib:
     Dup
-    Push(2)
-    Gt
-    JumpIfZero(9)
+    Push 2
+    Lt
+    JmpIfZero 9
     Ret
     Dup
-    Push(1)
+    Push 1
     Sub
-    Call(4)
-    Dup
-    Push(2)
+    Call fib
+
+    Swap
+    Push 2
     Sub
-    Call(4)
+    Call fib
     Add
     Ret

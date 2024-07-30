@@ -1,6 +1,6 @@
 pub mod instructions;
-use core::time;
-use std::{thread, time::{ Duration}};
+use std::{thread, time::Duration};
+
 
 use instructions::Instruction;
 
@@ -18,16 +18,28 @@ impl StackMachine {
             call_stack: Vec::new()
         }
     }
+    #[cfg(not(debug_assertions))]
     pub fn execute(&mut self, ins: Vec<Instruction>) {
         while self.pc < ins.len() {
             let ins = &ins[self.pc];
-            //println!("{:?}", ins);
             match ins {
                 Instruction::HLT => break,
                 _ => {self.execute_instruction(ins);}
             }
-            //println!("{:?}", self.stack);
-            //thread::sleep(Duration::from_millis(100));
+        }
+    }
+    #[cfg(debug_assertions)]
+    pub fn execute(&mut self, ins: Vec<Instruction>) {
+        while self.pc < ins.len() {
+            let ins = &ins[self.pc];
+            println!("{:?}", ins);
+            match ins {
+                Instruction::HLT => break,
+                _ => {self.execute_instruction(ins);}
+            }
+            println!("{:?}", self.stack);
+
+            thread::sleep(Duration::from_millis(100));
         }
     }
     pub fn execute_instruction(&mut self, ins: &Instruction) {
