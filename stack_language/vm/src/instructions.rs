@@ -29,7 +29,7 @@ pub enum Instruction {
     Or,
     Not,
     HLT,
-    Nop
+    Nop,
 }
 
 #[derive(Debug, Default)]

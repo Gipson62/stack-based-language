@@ -2,3 +2,7 @@
 name = "vm"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+atlas-core = "0.5.4"
+internment = "0.8.4"

@@ -1,22 +1,25 @@
+.section
+.code
+#[start]
 main:
-    Push 40
-    Call fib
-    Print
-    HLT
+    push $40
+    call &fib
+    print
+    hlt
 fib:
-    Dup
-    Push 2
-    Lt
-    JmpIfZero 9
-    Ret
-    Dup
-    Push 1
-    Sub
-    Call fib
+    dup
+    push $2
+    lt
+    jmpz $9
+    ret
+    dup
+    push $1
+    sub
+    call &fib
 
-    Swap
-    Push 2
-    Sub
-    Call fib
-    Add
-    Ret
+    swap
+    push $2
+    sub
+    call &fib
+    add
+    ret

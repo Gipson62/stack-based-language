@@ -1,13 +1,16 @@
 pub mod instructions;
-use std::{thread, time::Duration};
-
+pub mod lexer;
+use lexer::{Lexer, Token};
+use std::{env, fs, thread, time::Duration};
+pub mod parser;
 
 use instructions::Instruction;
 
+#[derive(Debug)]
 pub struct StackMachine {
     pc: usize,
     stack: Vec<i32>,
-    call_stack: Vec<usize>
+    call_stack: Vec<usize>,
 }
 
 impl StackMachine {
@@ -15,166 +18,160 @@ impl StackMachine {
         Self {
             pc: 0,
             stack: Vec::new(),
-            call_stack: Vec::new()
+            call_stack: Vec::new(),
         }
     }
-    #[cfg(not(debug_assertions))]
+
     pub fn execute(&mut self, ins: Vec<Instruction>) {
         while self.pc < ins.len() {
             let ins = &ins[self.pc];
-            match ins {
-                Instruction::HLT => break,
-                _ => {self.execute_instruction(ins);}
-            }
-        }
-    }
-    #[cfg(debug_assertions)]
-    pub fn execute(&mut self, ins: Vec<Instruction>) {
-        while self.pc < ins.len() {
-            let ins = &ins[self.pc];
+            #[cfg(debug_assertions)]
             println!("{:?}", ins);
             match ins {
                 Instruction::HLT => break,
-                _ => {self.execute_instruction(ins);}
+                _ => {
+                    self.execute_instruction(ins);
+                }
             }
+            #[cfg(debug_assertions)]
             println!("{:?}", self.stack);
 
+            #[cfg(debug_assertions)]
             thread::sleep(Duration::from_millis(100));
         }
     }
     pub fn execute_instruction(&mut self, ins: &Instruction) {
-            use Instruction::*;
-            match ins {
-                Push(i) => self.stack.push(*i),
-                Pop => {
-                    self.stack.pop().expect("Stack Underflow");
-                }
-                Print => {
-                    let value = self.stack.last().expect("Stack Underflow");
-                    println!("{}", value)
-                }
-                Add => {
-                    let b = self.stack.pop().expect("Stack Underflow");
-                    let a = self.stack.pop().expect("Stack Underflow");
-                    self.stack.push(a + b);
-                }
-                Mul => {
-                    let b = self.stack.pop().expect("Stack Underflow");
-                    let a = self.stack.pop().expect("Stack Underflow");
-                    self.stack.push(a * b);
-                }
-                Div => {
-                    let b = self.stack.pop().expect("Stack Underflow");
-                    let a = self.stack.pop().expect("Stack Underflow");
-                    self.stack.push(a / b);
-                }
-                Sub => {
-                    let b = self.stack.pop().expect("Stack Underflow");
-                    let a = self.stack.pop().expect("Stack Underflow");
-                    self.stack.push(a - b);
-                }
-                Dup => {
-                    self.stack
-                        .push(*self.stack.last().expect("Stack Underflow"));
-                }
-                Swap => {
-                    let a = self.stack.pop().expect("Stack Underflow");
-                    let b = self.stack.pop().expect("Stack Underflow");
-                    self.stack.push(a);
-                    self.stack.push(b);
-                }
-                Rot => {
-                    let a = self.stack.pop().expect("Stack Underflow");
-                    let b = self.stack.pop().expect("Stack Underflow");
-                    let c = self.stack.pop().expect("Stack Underflow");
-                    self.stack.push(c);
-                    self.stack.push(b);
-                    self.stack.push(a);
-                }
-                Jmp(address) => {
-                    self.pc = address.into();
-                    return;
-                }
-                JmpIfZero(address) => {
-                    let val = self.stack.pop().expect("Stack Underflow");
-                    if val == 0 {
-                        self.pc = address.into();
-                        return;
-                    }
-                }
-                JmpIfNotZero(address) => {
-                    let val = self.stack.pop().expect("Stack Underflow");
-                    if val != 0 {
-                        self.pc = address.into();
-                        return;
-                    }
-                    
-                }
-                Call(address) => {
-                    self.call_stack.push(self.pc as usize + 1);
-                    self.pc = address.into();
-                    return;
-                }
-                Ret => {
-                    self.pc = self.call_stack.pop().expect("Call Stack Underflow") as usize;
-                    return;
-                }
-                Read => {
-                    let mut input = String::new();
-                    std::io::stdin()
-                        .read_line(&mut input)
-                        .expect("Failed to read input");
-                    let val = input.trim().parse().expect("Invalid input");
-                    self.stack.push(val);
-                }
-                Instruction::Eq => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a == b) as i32);
-                }
-                Instruction::Neq => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a != b) as i32);
-                }
-                Instruction::Lt => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a < b) as i32);
-                }
-                Instruction::Gt => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a > b) as i32);
-                }
-                Instruction::Lte => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a <= b) as i32);
-                }
-                Instruction::Gte => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a >= b) as i32);
-                }
-                Instruction::And => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a != 0 && b != 0) as i32);
-                }
-                Instruction::Or => {
-                    let b = self.stack.pop().expect("Stack underflow");
-                    let a = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((a != 0 || b != 0) as i32);
-                }
-                Instruction::Not => {
-                    let value = self.stack.pop().expect("Stack underflow");
-                    self.stack.push((value == 0) as i32);
-                }
-                Nop => {}
-                _ => unimplemented!()
+        use Instruction::*;
+        match ins {
+            Push(i) => self.stack.push(*i),
+            Pop => {
+                self.stack.pop().expect("Stack Underflow");
             }
-            self.pc += 1;
+            Print => {
+                let value = self.stack.last().expect("Stack Underflow");
+                println!("{}", value)
+            }
+            Add => {
+                let b = self.stack.pop().expect("Stack Underflow");
+                let a = self.stack.pop().expect("Stack Underflow");
+                self.stack.push(a + b);
+            }
+            Mul => {
+                let b = self.stack.pop().expect("Stack Underflow");
+                let a = self.stack.pop().expect("Stack Underflow");
+                self.stack.push(a * b);
+            }
+            Div => {
+                let b = self.stack.pop().expect("Stack Underflow");
+                let a = self.stack.pop().expect("Stack Underflow");
+                self.stack.push(a / b);
+            }
+            Sub => {
+                let b = self.stack.pop().expect("Stack Underflow");
+                let a = self.stack.pop().expect("Stack Underflow");
+                self.stack.push(a - b);
+            }
+            Dup => {
+                self.stack
+                    .push(*self.stack.last().expect("Stack Underflow"));
+            }
+            Swap => {
+                let a = self.stack.pop().expect("Stack Underflow");
+                let b = self.stack.pop().expect("Stack Underflow");
+                self.stack.push(a);
+                self.stack.push(b);
+            }
+            Rot => {
+                let a = self.stack.pop().expect("Stack Underflow");
+                let b = self.stack.pop().expect("Stack Underflow");
+                let c = self.stack.pop().expect("Stack Underflow");
+                self.stack.push(c);
+                self.stack.push(b);
+                self.stack.push(a);
+            }
+            Jmp(address) => {
+                self.pc = address.into();
+                return;
+            }
+            JmpIfZero(address) => {
+                let val = self.stack.pop().expect("Stack Underflow");
+                if val == 0 {
+                    self.pc = address.into();
+                    return;
+                }
+            }
+            JmpIfNotZero(address) => {
+                let val = self.stack.pop().expect("Stack Underflow");
+                if val != 0 {
+                    self.pc = address.into();
+                    return;
+                }
+            }
+            Call(address) => {
+                self.call_stack.push(self.pc as usize + 1);
+                self.pc = address.into();
+                return;
+            }
+            Ret => {
+                self.pc = self.call_stack.pop().expect("Call Stack Underflow") as usize;
+                return;
+            }
+            Read => {
+                let mut input = String::new();
+                std::io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read input");
+                let val = input.trim().parse().expect("Invalid input");
+                self.stack.push(val);
+            }
+            Instruction::Eq => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a == b) as i32);
+            }
+            Instruction::Neq => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a != b) as i32);
+            }
+            Instruction::Lt => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a < b) as i32);
+            }
+            Instruction::Gt => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a > b) as i32);
+            }
+            Instruction::Lte => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a <= b) as i32);
+            }
+            Instruction::Gte => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a >= b) as i32);
+            }
+            Instruction::And => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a != 0 && b != 0) as i32);
+            }
+            Instruction::Or => {
+                let b = self.stack.pop().expect("Stack underflow");
+                let a = self.stack.pop().expect("Stack underflow");
+                self.stack.push((a != 0 || b != 0) as i32);
+            }
+            Instruction::Not => {
+                let value = self.stack.pop().expect("Stack underflow");
+                self.stack.push((value == 0) as i32);
+            }
+            Nop => {}
+            _ => unimplemented!(),
+        }
+        self.pc += 1;
     }
 }
 
@@ -185,11 +182,12 @@ impl Default for StackMachine {
 }
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
     use std::time;
     let instant = time::Instant::now();
     use instructions::{Instruction::*, *};
-    let ins = vec![
-        Push(40),
+    /*let ins = vec![
+        Push(5),
         Call(Address::Val(4)),
         Print,
         HLT,
@@ -213,5 +211,19 @@ fn main() {
     let mut stack_machine = StackMachine::new();
     stack_machine.execute(ins);
     let elapsed = instant.elapsed();
-    println!("{:?}", elapsed);
+    println!("{:?}", elapsed);*/
+
+    if let Ok(content) = fs::read_to_string("./vm/src/example.txt") {
+        let res = Lexer::tokenize("example.rs", &content);
+        match res {
+            Ok(t) => {
+                println!("{:?}", t);
+            }
+            Err(e) => {
+                println!("{:?}", e.message());
+            }
+        }
+    } else {
+        println!("Error")
+    }
 }
