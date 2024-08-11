@@ -13,10 +13,15 @@ pub struct Block {
     len: usize,
 }
 
+pub struct Program {
+    pub ins: Vec<Instruction>,
+    pub constants: HashMap<Intern<String>, i32>,
+}
+
 pub struct Parser {
     tokens: Peekable<IntoIter<Token>>,
     blocks: Vec<Block>,
-    constants: HashMap<String, i32>,
+    constants: HashMap<Intern<String>, i32>,
     pos: usize,
 }
 
@@ -42,30 +47,36 @@ impl Parser {
         }
         todo!()
     }
+    fn is(tok: Option<Token>, t: TokenKind) -> bool {
+        if let Some(tok) = tok {
+            tok.kind() == t
+        } else {
+            false
+        }
+    }
 }
 
 impl Parser {
     fn parse_section(&mut self) -> Result<(), Box<dyn Error>> {
-        if let Some(tok) = self.tokens.next() {
-            if tok.kind() == TokenKind::Dot {
-                if let Some(tok) = self.tokens.next() {
-                    if tok.kind() == TokenKind::Keyword(Intern::new(String::from("section"))) {
-                        while let Some(tok) = self.tokens.peek() {
-                            if tok.kind() == TokenKind::Dot {
-                                break;
-                            }
-                            match self.parse_const() {
-                                Ok((k, v)) => {
-                                    self.constants.insert(k, v);
-                                }
-                                Err(e) => {
-                                    if e.recoverable() {
-                                        continue;
-                                    } else {
-                                        return Err(e);
-                                    }
-                                }
-                            }
+        if Parser::is(self.tokens.next(), TokenKind::Dot)
+            && Parser::is(
+                self.tokens.next(),
+                TokenKind::Keyword(Intern::new(String::from("section"))),
+            )
+        {
+            while let Some(tok) = self.tokens.peek() {
+                if tok.kind() == TokenKind::Dot {
+                    break;
+                }
+                match self.parse_const() {
+                    Ok((k, v)) => {
+                        self.constants.insert(Intern::new(k), v);
+                    }
+                    Err(e) => {
+                        if e.recoverable() {
+                            continue;
+                        } else {
+                            return Err(e);
                         }
                     }
                 }

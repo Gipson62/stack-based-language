@@ -3,6 +3,7 @@ pub mod lexer;
 use lexer::{Lexer, Token};
 use std::{env, fs, thread, time::Duration};
 pub mod parser;
+pub mod memory;
 
 use instructions::Instruction;
 
@@ -11,6 +12,7 @@ pub struct StackMachine {
     pc: usize,
     stack: Vec<i32>,
     call_stack: Vec<usize>,
+    memory: Vec<i32>,
 }
 
 impl StackMachine {
@@ -19,6 +21,7 @@ impl StackMachine {
             pc: 0,
             stack: Vec::new(),
             call_stack: Vec::new(),
+            memory: Vec::new(),
         }
     }
 
@@ -37,7 +40,7 @@ impl StackMachine {
             println!("{:?}", self.stack);
 
             #[cfg(debug_assertions)]
-            thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(25));
         }
     }
     pub fn execute_instruction(&mut self, ins: &Instruction) {
@@ -108,12 +111,12 @@ impl StackMachine {
                 }
             }
             Call(address) => {
-                self.call_stack.push(self.pc as usize + 1);
+                self.call_stack.push(self.pc + 1);
                 self.pc = address.into();
                 return;
             }
             Ret => {
-                self.pc = self.call_stack.pop().expect("Call Stack Underflow") as usize;
+                self.pc = self.call_stack.pop().expect("Call Stack Underflow");
                 return;
             }
             Read => {
@@ -182,38 +185,40 @@ impl Default for StackMachine {
 }
 
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
-    use std::time;
-    let instant = time::Instant::now();
-    use instructions::{Instruction::*, *};
-    /*let ins = vec![
-        Push(5),
-        Call(Address::Val(4)),
-        Print,
-        HLT,
-        Dup,
-        Push(2),
-        Lt,
-        JmpIfZero(Address::Val(9)),
-        Ret,
-        Dup,
-        Push(1),
-        Sub,
-        Call(Address::Val(4)),
+    //env::set_var("RUST_BACKTRACE", "1");
+    let mut tmp = Duration::new(0, 0);
+    for _ in 0..10 {
+        use std::time;
+        let instant = time::Instant::now();
+        use instructions::{Instruction::*, *};
+        let ins = vec![
+            Push(40),
+            Call(Address::Val(4)),
+            Nop,
+            HLT,
+            Dup,
+            Push(2),
+            Lt,
+            JmpIfZero(Address::Val(9)),
+            Ret,
+            Dup,
+            Push(1),
+            Sub,
+            Call(Address::Val(4)),
+            Swap,
+            Push(2),
+            Sub,
+            Call(Address::Val(4)),
+            Add,
+            Ret,
+        ];
+        let mut stack_machine = StackMachine::new();
+        stack_machine.execute(ins);
+        tmp += instant.elapsed();
+    }
+    println!("{:?}", tmp.div_f32(100.0));
 
-        Swap,
-        Push(2),
-        Sub,
-        Call(Address::Val(4)),
-        Add,
-        Ret,
-    ];
-    let mut stack_machine = StackMachine::new();
-    stack_machine.execute(ins);
-    let elapsed = instant.elapsed();
-    println!("{:?}", elapsed);*/
-
-    if let Ok(content) = fs::read_to_string("./vm/src/example.txt") {
+    /*if let Ok(content) = fs::read_to_string("./vm/src/example.txt") {
         let res = Lexer::tokenize("example.rs", &content);
         match res {
             Ok(t) => {
@@ -225,5 +230,5 @@ fn main() {
         }
     } else {
         println!("Error")
-    }
+    }*/
 }
