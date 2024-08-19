@@ -4,7 +4,7 @@ use internment::Intern;
 
 use crate::{
     instructions::Instruction,
-    lexer::{Error, Token, TokenKind},
+    lexer::{AtlasLexer, Token, TokenKind},
 };
 
 pub struct Block {
@@ -26,7 +26,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(tokens: Vec<Token>) -> Result<Vec<Instruction>, Box<dyn Error>> {
+    pub fn parse(tokens: Vec<Token>) -> Result<Vec<Instruction>, ()> {
         let toks = tokens.into_iter().peekable();
         let mut parser = Parser {
             tokens: toks,
@@ -38,11 +38,11 @@ impl Parser {
             Ok(_) => match parser.parse_code() {
                 Ok(_) => {}
                 Err(e) => {
-                    println!("{}", e.message())
+                    return Err(());
                 }
             },
             Err(e) => {
-                println!("{}", e.message())
+                return Err(());
             }
         }
         todo!()
@@ -57,7 +57,7 @@ impl Parser {
 }
 
 impl Parser {
-    fn parse_section(&mut self) -> Result<(), Box<dyn Error>> {
+    fn parse_section(&mut self) -> Result<(), ()> {
         if Parser::is(self.tokens.next(), TokenKind::Dot)
             && Parser::is(
                 self.tokens.next(),
@@ -72,28 +72,22 @@ impl Parser {
                     Ok((k, v)) => {
                         self.constants.insert(Intern::new(k), v);
                     }
-                    Err(e) => {
-                        if e.recoverable() {
-                            continue;
-                        } else {
-                            return Err(e);
-                        }
-                    }
+                    Err(e) => return Err(e),
                 }
             }
         }
         Ok(())
     }
-    fn parse_const(&mut self) -> Result<(String, i32), Box<dyn Error>> {
+    fn parse_const(&mut self) -> Result<(String, i32), ()> {
         todo!()
     }
 }
 
 impl Parser {
-    fn parse_code(&mut self) -> Result<(), Box<dyn Error>> {
+    fn parse_code(&mut self) -> Result<(), ()> {
         todo!()
     }
-    fn parse_block(&mut self) -> Result<Block, Box<dyn Error>> {
+    fn parse_block(&mut self) -> Result<Block, ()> {
         todo!()
     }
 }

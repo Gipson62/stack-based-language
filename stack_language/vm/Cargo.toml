@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-atlas-core = "0.5.4"
+atlas-core = {path="C:\\Users\\julhi\\Documents\\Project\\atlas-core"}
 internment = "0.8.4"

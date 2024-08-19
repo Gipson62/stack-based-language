@@ -1,24 +1,41 @@
 pub struct Memory {
-    mem: Vec<u8>,
-    blocks: Vec<Block>
+    mem: Vec<Object>,
+    pub(crate) free: ObjectIndex,
 }
 
-pub struct Block {
-    start: usize,
-    end: usize,
-    id: u64
+#[derive(Clone, Copy, Debug)]
+pub struct ObjectIndex {
+    pub(crate) idx: u64,
+}
+
+impl ObjectIndex {
+    pub fn new(i: u64) -> ObjectIndex {
+        ObjectIndex { idx: i }
+    }
 }
 
 impl Memory {
-    pub fn get(&self, id: u64) -> Option<&[u8]> {
-        for b in &self.blocks {
-            if b.id == id {
-                return Some(&self.mem[b.start..b.end])
-            }
+    pub(crate) fn new(space: usize) -> Self {
+        Self {
+            free: ObjectIndex::new(0),
+            mem: (0..space)
+                .map(|x| Object::Free {
+                    next: ObjectIndex::new(((x + 1) % space) as u64),
+                })
+                .collect(),
         }
-        None
     }
-    pub fn alloc(&self, size: usize) -> u64 {
-        
-    }
+}
+
+#[derive(Clone, Debug)]
+pub enum Object {
+    Integer(i64),
+    Float(f64),
+    String(String),
+    
+    Free { next: ObjectIndex },
+}
+
+pub struct Structure {
+    fields: Vec<Object>
 }

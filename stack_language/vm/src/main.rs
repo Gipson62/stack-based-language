@@ -1,9 +1,9 @@
 pub mod instructions;
 pub mod lexer;
-use lexer::{Lexer, Token};
+use lexer::{identifier_system, AtlasLexer, Token, TokenKind};
 use std::{env, fs, thread, time::Duration};
-pub mod parser;
 pub mod memory;
+pub mod parser;
 
 use instructions::Instruction;
 
@@ -186,7 +186,7 @@ impl Default for StackMachine {
 
 fn main() {
     //env::set_var("RUST_BACKTRACE", "1");
-    let mut tmp = Duration::new(0, 0);
+    /*let mut tmp = Duration::new(0, 0);
     for _ in 0..10 {
         use std::time;
         let instant = time::Instant::now();
@@ -216,19 +216,21 @@ fn main() {
         stack_machine.execute(ins);
         tmp += instant.elapsed();
     }
-    println!("{:?}", tmp.div_f32(100.0));
+    println!("{:?}", tmp.div_f32(100.0));*/
 
-    /*if let Ok(content) = fs::read_to_string("./vm/src/example.txt") {
-        let res = Lexer::tokenize("example.rs", &content);
+    if let Ok(content) = fs::read_to_string("./vm/src/example.txt") {
+        let mut lexer = AtlasLexer::default();
+        lexer.set_path("src/example.txt");
+        lexer.set_source(content);
+        lexer.add_system(identifier_system);
+        let res = lexer.tokenize();
         match res {
-            Ok(t) => {
-                println!("{:?}", t);
-            }
-            Err(e) => {
-                println!("{:?}", e.message());
+            Ok(t) => t.into_iter().for_each(|tok| println!("{:?}", tok.kind())),
+            Err(_e) => {
+                println!("Error1");
             }
         }
     } else {
-        println!("Error")
-    }*/
+        println!("Error2")
+    }
 }
