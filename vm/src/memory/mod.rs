@@ -3,6 +3,7 @@ pub struct Memory {
     pub(crate) free: ObjectIndex,
 }
 
+#[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct ObjectIndex {
     pub(crate) idx: u64,
@@ -32,10 +33,11 @@ pub enum Object {
     Integer(i64),
     Float(f64),
     String(String),
-    
+    Structure(Structure),
     Free { next: ObjectIndex },
 }
 
+#[derive(Clone, Debug)]
 pub struct Structure {
     fields: Vec<Object>
 }
