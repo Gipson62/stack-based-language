@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Instruction {
     PushI(i64),
     PushU(u64),
@@ -42,7 +42,7 @@ pub enum Instruction {
     Nop,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum Address {
     #[default]
     ToDefine,

@@ -4,7 +4,6 @@ use instructions::Instruction;
 use mem::{Memory, ObjectIndex};
 use std::{
     fmt::{Debug, Display},
-    ops::Add,
     thread,
     time::Duration,
     vec,
@@ -22,11 +21,17 @@ impl VM {
     pub fn new() -> Self {
         Self {
             stack: Stack::new(),
-            object_map: Memory::new(4096),
+            object_map: Memory::new(16),
             constants: vec![],
             call_stack: vec![],
             pc: usize::default(),
         }
+    }
+    #[inline(always)]
+    pub fn clean(&mut self) {
+        self.stack.top = 1;
+        self.call_stack = vec![];
+        self.pc = usize::default();
     }
     pub fn execute(&mut self, ins: Vec<Instruction>) {
         while self.pc < ins.len() {
@@ -45,6 +50,7 @@ impl VM {
             #[cfg(debug_assertions)]
             thread::sleep(Duration::from_millis(250));
         }
+        self.clean();
     }
     pub fn execute_instruction(&mut self, ins: &Instruction) {
         use Instruction::*;
@@ -82,8 +88,7 @@ impl VM {
             }
             Dup => {
                 let last = self.stack.last().expect("Stack Underflow");
-                self.stack
-                    .push(*last);
+                self.stack.push(*last);
             }
             Swap => {
                 let a = self.stack.pop().expect("Stack Underflow");
@@ -189,7 +194,7 @@ const STACK_SIZE: usize = 16 * 1024 / size_of::<VMData>();
 #[derive(Debug)]
 pub struct Stack {
     values: [VMData; STACK_SIZE],
-    top: usize,
+    pub top: usize,
 }
 
 // TODO: this implementation should be overhauled a bit cuz it's kinda clunky
@@ -202,7 +207,7 @@ impl Stack {
     }
 
     pub fn push(&mut self, val: VMData) {
-        if !(self.top >= self.values.len()) {
+        if !(self.top >= STACK_SIZE) {
             self.values[self.top] = val;
             self.top += 1;
         } else {
@@ -212,14 +217,15 @@ impl Stack {
 
     pub fn pop(&mut self) -> Option<VMData> {
         if self.top != 0 {
-            let r = self.values[self.top - 1];
             self.top -= 1;
+            let r = self.values[self.top];
             Some(r)
         } else {
             None
         }
     }
 
+    #[inline(always)]
     pub fn last(&self) -> Option<&VMData> {
         if self.top != 0 {
             Some(&self.values[self.top - 1])
@@ -231,13 +237,14 @@ impl Stack {
 
 impl Display for Stack {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Stack: {{ values: {}, top: {}}}",
+        write!(
+            f,
+            "Stack: {{ values: {}, top: {}}}",
             {
                 let mut s = "[".to_string();
                 self.values.into_iter().for_each(|v| {
                     s.push_str(&format!("{}, ", &v.to_string()));
-                }
-                );
+                });
                 s.push(']');
                 s
             },
@@ -334,8 +341,8 @@ impl PartialOrd for VMData {
 
         match self.tag {
             Self::TAG_FLOAT => self.as_f64().partial_cmp(&other.as_f64()),
-            Self::TAG_U64 => self.as_u64().partial_cmp(&&other.as_u64()),
-            Self::TAG_I64 => self.as_i64().partial_cmp(&&other.as_i64()),
+            Self::TAG_U64 => self.as_u64().partial_cmp(&other.as_u64()),
+            Self::TAG_I64 => self.as_i64().partial_cmp(&other.as_i64()),
             _ => panic!("Illegal comparison"),
         }
     }

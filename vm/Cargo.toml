@@ -6,3 +6,11 @@ edition = "2021"
 [dependencies]
 atlas-core = {path="C:\\Users\\julhi\\Documents\\Project\\atlas-core"}
 internment = "0.8.4"
+
+[dev-dependencies]
+criterion = "0.5.1"
+gnuplot = "0.0.43"
+
+[[bench]]
+name = "vm_benchmark"
+harness = false
