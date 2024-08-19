@@ -1,4 +1,4 @@
-use crate::VMData;
+use crate::memory::vm_data::VMData;
 
 pub struct Memory {
     mem: Vec<Object>,

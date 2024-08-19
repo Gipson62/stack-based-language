@@ -1,12 +1,9 @@
-pub mod lexer;
 use std::time::Duration;
 
-use vm::instructions::{Address, Instruction::*};
+use vm::instruction::{Address, Instruction::*};
 
-use lexer::{identifier_system, AtlasLexer};
-pub mod parser;
 
-use vm::VM;
+use vm::runtime::VM;
 
 const TEST_AMOUNT: usize = 10;
 
@@ -49,10 +46,9 @@ fn main() {
     for _ in 0..TEST_AMOUNT {
         let instant = std::time::Instant::now();
         fibonacci(40);
-        tmp+=instant.elapsed();
+        tmp += instant.elapsed();
     }
     println!("tmp2: {:?}", tmp.div_f32(TEST_AMOUNT as f32));
-
 
     /*if let Ok(content) = std::fs::read_to_string("./vm/src/example.txt") {
         let mut lexer = AtlasLexer::default();

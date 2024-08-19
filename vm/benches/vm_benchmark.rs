@@ -1,14 +1,14 @@
-use vm::{instructions::{Address, Instruction::{self, *}}, VM};
-use criterion::{
-    black_box,
-    criterion_group,
-    criterion_main,
-    Criterion
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use vm::{
+    instruction::{
+        Address,
+        Instruction::{self, *},
+    },
+    runtime::VM,
 };
 
 fn vm_test_benchmark(c: &mut Criterion) {
-    let ins = black_box(
-        vec![
+    let ins = black_box(vec![
         PushI(25),
         Call(Address::Val(4)),
         Nop,
@@ -31,9 +31,8 @@ fn vm_test_benchmark(c: &mut Criterion) {
     ]);
     let mut vm = VM::new();
     let mut counter = 0;
-    c.bench_function(
-        "vm_instruction", 
-        |b| b.iter(|| {
+    c.bench_function("vm_instruction", |b| {
+        b.iter(|| {
             vm.execute_instruction(&ins[0]);
             vm.stack.top = 1;
             counter += 1;
@@ -41,7 +40,7 @@ fn vm_test_benchmark(c: &mut Criterion) {
                 counter = 0
             }
         })
-    );
+    });
 }
 
 criterion_group!(benches, vm_test_benchmark);

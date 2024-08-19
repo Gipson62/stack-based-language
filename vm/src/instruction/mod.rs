@@ -1,3 +1,5 @@
+pub (crate) mod compiler;
+
 #[derive(Debug, Clone, Copy)]
 pub enum Instruction {
     PushI(i64),
@@ -50,6 +52,7 @@ pub enum Address {
 }
 
 impl From<&Address> for usize {
+    #[inline(always)]
     fn from(value: &Address) -> Self {
         match value {
             Address::ToDefine => panic!(),
