@@ -1,11 +1,21 @@
 #[derive(Debug)]
 pub enum Instruction {
-    Push(i32),
+    PushI(i64),
+    PushU(u64),
+    PushF(f64),
     Pop,
-    Add,
-    Sub,
-    Mul,
-    Div,
+    AddI,
+    AddU,
+    AddF,
+    SubI,
+    SubU,
+    SubF,
+    MulI,
+    MulU,
+    MulF,
+    DivI,
+    DivU,
+    DivF,
     //Duplicate the top value of the stack
     Dup,
     //Swap the 2 top value of the stack (using the tmp register)
@@ -13,8 +23,8 @@ pub enum Instruction {
     //Rotate the first 3 elements, so [1, 2, 3] => [3, 2, 1]
     Rot,
     Jmp(Address),
-    JmpIfZero(Address),
-    JmpIfNotZero(Address),
+    JumpIfTrue(Address),
+    JumpIfFalse(Address),
     Call(Address),
     Ret,
     Print,

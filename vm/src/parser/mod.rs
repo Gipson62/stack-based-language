@@ -1,11 +1,8 @@
 use std::{collections::HashMap, iter::Peekable, vec::IntoIter};
 
+use crate::lexer::{AtlasLexer, Token, TokenKind};
 use internment::Intern;
-
-use crate::{
-    instructions::Instruction,
-    lexer::{AtlasLexer, Token, TokenKind},
-};
+use vm::instructions::Instruction;
 
 pub struct Block {
     id: Intern<String>,
