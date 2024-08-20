@@ -1,7 +1,9 @@
 use std::{thread, time::Duration};
 
-use crate::{instruction::Instruction, memory::{object_map::Memory, stack::Stack, vm_data::VMData}};
-
+use crate::{
+    instruction::Instruction,
+    memory::{object_map::Memory, stack::Stack, vm_data::VMData},
+};
 
 pub struct VM {
     pub stack: Stack,
@@ -50,6 +52,16 @@ impl VM {
         use Instruction::*;
         match ins {
             PushI(i) => self.stack.push(VMData::new_i64(*i)),
+            PushF(f) => self.stack.push(VMData::new_f64(*f)),
+            PushU(u) => self.stack.push(VMData::new_u64(*u)),
+            LoadConst(u) => {
+                //constants aren't loaded as is, but are fetched from constants: Vec<VMData>
+                #[cfg(debug_assertions)]
+                if self.constants.len() < *u {
+                    panic!("Can't load that constant, it doesn't exist");
+                }
+                self.stack.push(self.constants[*u]);
+            }
             Pop => {
                 self.stack.pop().expect("Stack Underflow");
             }

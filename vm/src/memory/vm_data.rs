@@ -2,7 +2,6 @@ use std::fmt::Display;
 
 use super::object_map::ObjectIndex;
 
-
 #[derive(Clone, Copy)]
 pub union RawVMData {
     as_unit: (),

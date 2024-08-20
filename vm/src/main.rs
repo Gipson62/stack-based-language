@@ -1,7 +1,8 @@
+#[allow(unused)]
+
 use std::time::Duration;
 
 use vm::instruction::{Address, Instruction::*};
-
 
 use vm::runtime::VM;
 
@@ -12,7 +13,7 @@ fn main() {
     let mut tmp = Duration::new(0, 0);
     let mut stack_machine = VM::new();
     let ins = vec![
-        PushI(40),
+        PushI(35),
         Call(Address::Val(4)),
         Nop,
         HLT,
@@ -42,14 +43,6 @@ fn main() {
     }
     println!("tmp1: {:?}", tmp.div_f32(TEST_AMOUNT as f32));
 
-    let mut tmp = Duration::new(0, 0);
-    for _ in 0..TEST_AMOUNT {
-        let instant = std::time::Instant::now();
-        fibonacci(40);
-        tmp += instant.elapsed();
-    }
-    println!("tmp2: {:?}", tmp.div_f32(TEST_AMOUNT as f32));
-
     /*if let Ok(content) = std::fs::read_to_string("./vm/src/example.txt") {
         let mut lexer = AtlasLexer::default();
         lexer.set_path("src/example.txt");
@@ -65,12 +58,4 @@ fn main() {
     } else {
         println!("Error2")
     }*/
-}
-
-fn fibonacci(n: i64) -> i64 {
-    if n < 2 {
-        return n;
-    } else {
-        fibonacci(n - 1) + fibonacci(n - 2)
-    }
 }
